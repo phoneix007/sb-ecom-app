@@ -9,6 +9,11 @@ import com.ecom.sb_ecom_application.repositories.CategoriesRepo;
 import com.ecom.sb_ecom_application.repositories.ProductRepo;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -16,7 +21,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -31,6 +35,9 @@ public class ProductServiceImp implements ProductService {
 
     @Autowired
     private ModelMapper modelMapper;
+
+    @Value("${project.image}")
+    private String path;
 
     @Override
     public ProductDTO addProduct(Long categoryId, Product product) {
@@ -48,11 +55,19 @@ public class ProductServiceImp implements ProductService {
     }
 
     @Override
-    public ProductResponse getProducts() {
-        List<Product> products = productRepository.findAll();
+    public ProductResponse getProducts(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
+        Sort sortByAndOrder = sortOrder.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageDetail = PageRequest.of(pageNumber, pageSize, sortByAndOrder);
+        Page<Product> pageProducts = productRepository.findAll(pageDetail);
+        List<Product> products = pageProducts.getContent();
         List<ProductDTO> productDTOS = products.stream().map(product -> modelMapper.map(product, ProductDTO.class)).collect(Collectors.toList());
         ProductResponse productResponse = new ProductResponse();
         productResponse.setContent(productDTOS);
+        productResponse.setTotalPages(pageProducts.getTotalPages());
+        productResponse.setPageNumber(pageProducts.getNumber());
+        productResponse.setPageSize(pageProducts.getSize());
+        productResponse.setLastPage(pageProducts.isLast());
+        productResponse.setTotalElements(pageProducts.getNumberOfElements());
         return productResponse;
     }
 
@@ -121,7 +136,6 @@ public class ProductServiceImp implements ProductService {
 
         // Upload image to server
         // Get the file name of uploaded image
-        String path = "images/";
         String fileName = uploadImage(path, image);
 
         // Updating the new file name to the product

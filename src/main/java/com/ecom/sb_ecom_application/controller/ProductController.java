@@ -1,10 +1,12 @@
 package com.ecom.sb_ecom_application.controller;
 
+import com.ecom.sb_ecom_application.config.AppConstants;
 import com.ecom.sb_ecom_application.model.Product;
 import com.ecom.sb_ecom_application.payload.ProductDTO;
 import com.ecom.sb_ecom_application.payload.ProductResponse;
 import com.ecom.sb_ecom_application.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,8 +29,11 @@ public class ProductController {
     }
 
     @GetMapping("/public/products")
-    public ResponseEntity<ProductResponse> getAllProducts(){
-        return new ResponseEntity<>(productService.getProducts(), HttpStatus.OK);
+    public ResponseEntity<ProductResponse> getAllProducts(@RequestParam (name = "pageNumber" , defaultValue = AppConstants.PAGE_NUMBER , required = false) Integer pageNumber ,
+                                                          @RequestParam (name = "pageSize" , defaultValue = AppConstants.PAGE_SIZE , required = false) Integer pageSize ,
+                                                          @RequestParam (name = "sortBy", defaultValue = AppConstants.SORT_PRODUCT_BY , required = false) String sortBy ,
+                                                          @RequestParam (name ="sortOrder" , defaultValue = AppConstants.SORT_ORDER , required = false) String sortOrder, Sort sort){
+        return new ResponseEntity<>(productService.getProducts(pageNumber , pageSize , sortBy , sortOrder), HttpStatus.OK);
     }
 
     @GetMapping("/public/category/{categoryId}/products")

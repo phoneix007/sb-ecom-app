@@ -9,7 +9,7 @@ import java.io.IOException;
 
 public interface ProductService {
     ProductDTO addProduct(Long categoryId, Product product);
-    ProductResponse getProducts();
+    ProductResponse getProducts(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder);
     ProductResponse getProductByCategory(Long categoryId);
     ProductResponse getProductByKeyword(String keyword);
     ProductDTO updateProduct(Long productId, Product product);
